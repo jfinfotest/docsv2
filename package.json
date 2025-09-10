@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:gh-pages": "set NODE_ENV=production && npm run build",
+    "build:gh-pages": "tsc && vite build --mode production",
     "preview": "vite preview",
+    "preview:gh-pages": "vite preview --base=/docsv1/",
     "update-manifest": "node scripts/update-manifest.js",
-    "deploy": "npm run build:gh-pages && gh-pages -d dist"
+    "predeploy": "npm run build:gh-pages",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@google/genai": "^0.14.1",
@@ -47,6 +49,7 @@
     "gh-pages": "^6.1.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
+    "terser": "^5.24.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.8"
   },

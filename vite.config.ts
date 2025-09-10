@@ -4,9 +4,11 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
+    const isProduction = mode === 'production';
+    
     return {
-      base: process.env.NODE_ENV === 'production' ? '/docsv1/' : '/',
       plugins: [react()],
+      base: isProduction ? '/docsv1/' : '/',
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
@@ -19,17 +21,26 @@ export default defineConfig(({ mode }) => {
       },
       build: {
         outDir: 'dist',
-        sourcemap: true,
+        sourcemap: false,
+        minify: 'esbuild',
         rollupOptions: {
           output: {
             manualChunks: {
               vendor: ['react', 'react-dom'],
-              router: ['react-router-dom']
-            }
+              router: ['react-router-dom'],
+              markdown: ['react-markdown', 'remark-gfm', 'rehype-highlight'],
+              charts: ['chart.js', 'react-chartjs-2'],
+              icons: ['lucide-react']
+            },
+            chunkFileNames: 'assets/[name]-[hash].js',
+            entryFileNames: 'assets/[name]-[hash].js',
+            assetFileNames: 'assets/[name]-[hash].[ext]'
           }
         },
         assetsInclude: ['**/*.md', '**/*.json'],
-        copyPublicDir: true
+        copyPublicDir: true,
+        target: 'esnext',
+        cssCodeSplit: true
       },
       server: {
         port: 3000,

@@ -1,123 +1,95 @@
-# Guía de Despliegue en GitHub Pages
+# Deploy a GitHub Pages
 
-Este documento explica cómo desplegar el proyecto de documentación estática en GitHub Pages.
+Este proyecto está configurado para desplegarse automáticamente en GitHub Pages.
 
 ## Configuración Automática
 
-El proyecto ya está configurado para desplegarse automáticamente en GitHub Pages mediante GitHub Actions.
+El proyecto incluye:
 
-### Archivos de Configuración
+### 1. Configuración de Vite optimizada para GitHub Pages
+- Base path configurado automáticamente para producción (`/docsv1/`)
+- Build optimizado con minificación y code splitting
+- Chunks separados por categorías (vendor, router, markdown, charts, icons)
+- Assets con hash para cache busting
 
-1. **vite.config.ts**: Configurado con el `base` path correcto para GitHub Pages
-2. **package.json**: Incluye scripts específicos para el build de producción
-3. **.github/workflows/deploy.yml**: Workflow de GitHub Actions para despliegue automático
-
-## Scripts Disponibles
-
-### Build para GitHub Pages
+### 2. Scripts de NPM
 ```bash
+# Build para desarrollo local
+npm run build
+
+# Build optimizado para GitHub Pages
 npm run build:gh-pages
-```
-Este comando:
-- Establece NODE_ENV=production
-- Ejecuta TypeScript compiler
-- Genera el build optimizado en la carpeta `dist/`
 
-### Despliegue Manual (Opcional)
-```bash
+# Preview local con base path de GitHub Pages
+npm run preview:gh-pages
+
+# Deploy manual (requiere gh-pages instalado)
 npm run deploy
 ```
-Este comando:
-- Ejecuta el build de GitHub Pages
-- Despliega usando gh-pages (requiere configuración adicional)
+
+### 3. GitHub Actions Workflow
+El archivo `.github/workflows/deploy.yml` automatiza el deploy:
+- Se ejecuta en cada push a la rama `main`
+- Instala dependencias y ejecuta el build
+- Despliega automáticamente a GitHub Pages
 
 ## Configuración en GitHub
 
-### 1. Habilitar GitHub Pages
+### Paso 1: Habilitar GitHub Pages
+1. Ve a Settings > Pages en tu repositorio
+2. En "Source", selecciona "GitHub Actions"
+3. El workflow se ejecutará automáticamente
 
-1. Ve a tu repositorio en GitHub
-2. Navega a **Settings** > **Pages**
-3. En **Source**, selecciona **GitHub Actions**
+### Paso 2: Configurar Variables de Entorno (Opcional)
+Si tu aplicación usa la API de Gemini:
+1. Ve a Settings > Secrets and variables > Actions
+2. Agrega `GEMINI_API_KEY` como secret
 
-### 2. Configurar Permisos
-
-Asegúrate de que el repositorio tenga los permisos necesarios:
-- **Settings** > **Actions** > **General**
-- En **Workflow permissions**, selecciona **Read and write permissions**
-- Marca **Allow GitHub Actions to create and approve pull requests**
-
-## Despliegue Automático
-
-El despliegue se ejecuta automáticamente cuando:
-- Se hace push a la rama `main`
-- Se crea un pull request hacia `main`
-
-### Proceso del Workflow
-
-1. **Checkout**: Descarga el código del repositorio
-2. **Setup Node.js**: Configura Node.js v18
-3. **Install dependencies**: Instala las dependencias con `npm ci`
-4. **Build**: Ejecuta el build de producción
-5. **Deploy**: Despliega los archivos a GitHub Pages
-
-## URL del Sitio
-
-Una vez desplegado, el sitio estará disponible en:
-```
-https://[tu-usuario].github.io/docsv1/
+### Paso 3: Verificar el Base Path
+Asegúrate de que el nombre del repositorio coincida con el base path en `vite.config.ts`:
+```typescript
+base: isProduction ? '/nombre-del-repo/' : '/'
 ```
 
-## Solución de Problemas
+## Deploy Manual
 
-### Error de Dependencias
-Si encuentras errores de peer dependencies durante la instalación:
+Si prefieres hacer deploy manual:
+
 ```bash
-npm install --legacy-peer-deps
+# Instalar gh-pages si no está instalado
+npm install -g gh-pages
+
+# Hacer deploy
+npm run deploy
 ```
-
-### Build Fallido
-Si el build falla, verifica:
-1. Que todas las dependencias estén instaladas
-2. Que no haya errores de TypeScript
-3. Que los archivos de configuración estén correctos
-
-### Permisos de GitHub Actions
-Si el despliegue falla por permisos:
-1. Verifica la configuración de permisos en Settings > Actions
-2. Asegúrate de que GitHub Pages esté configurado para usar GitHub Actions
 
 ## Estructura de Archivos Generados
 
 ```
 dist/
-├── index.html          # Página principal
-├── assets/            # Archivos estáticos (CSS, JS, fuentes)
-│   ├── *.css         # Estilos compilados
-│   ├── *.js          # JavaScript compilado
-│   └── fonts/        # Fuentes web
-└── docs/             # Documentación markdown procesada
+├── assets/
+│   ├── vendor-[hash].js     # React, React DOM
+│   ├── router-[hash].js     # React Router
+│   ├── markdown-[hash].js   # Componentes de Markdown
+│   ├── charts-[hash].js     # Chart.js
+│   ├── icons-[hash].js      # Lucide React
+│   └── index-[hash].css     # Estilos principales
+├── docs/                    # Archivos de documentación
+├── .nojekyll               # Evita procesamiento Jekyll
+└── index.html              # Punto de entrada
 ```
 
-## Notas Importantes
+## Solución de Problemas
 
-- El proyecto usa Vite como bundler
-- Se genera un build optimizado para producción
-- Los archivos se sirven desde la carpeta `dist/`
-- El base path está configurado como `/docsv1/` para GitHub Pages
-- Se incluyen source maps para debugging
+### El sitio no carga correctamente
+- Verifica que el base path en `vite.config.ts` coincida con el nombre del repositorio
+- Asegúrate de que GitHub Pages esté configurado para usar GitHub Actions
 
-## Comandos de Desarrollo
+### Assets no se cargan
+- Confirma que el archivo `.nojekyll` esté presente en la carpeta `public/`
+- Verifica que los paths relativos estén correctos
 
-```bash
-# Desarrollo local
-npm run dev
-
-# Build de producción
-npm run build
-
-# Preview del build
-npm run preview
-
-# Build específico para GitHub Pages
-npm run build:gh-pages
-```
+### Error en el build
+- Revisa que todas las dependencias estén instaladas
+- Verifica que no haya errores de TypeScript
+- Comprueba que las variables de entorno estén configuradas si son necesarias
