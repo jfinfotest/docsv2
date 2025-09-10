@@ -1,0 +1,5 @@
+{
+  "name": "Static Documentation Site Stalone  i18n Version",
+  "description": "A modern, responsive static documentation site built with React and Tailwind CSS, inspired by MkDocs but with a unique, minimalist design. It features a collapsible sidebar, dark mode, and Markdown content rendering.",
+  "requestFramePermissions": []
+}
